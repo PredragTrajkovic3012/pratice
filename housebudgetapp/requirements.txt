@@ -2,3 +2,4 @@ wheel
 tortoise-orm[asyncpg]
 tortoise-orm[accel]
 asynctest
+faker

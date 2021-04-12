@@ -12,7 +12,7 @@ async def init():
     c = {
         'user' : 'predrag',
         'password' : '123',
-        'host' : 'localhost',
+        'host' : '127.0.0.1',
         'dbname' : 'housebudgetapp'
     }
     await Tortoise.init(
@@ -22,17 +22,26 @@ async def init():
     # Generate the schema
     await Tortoise.generate_schemas()
 
-    grupa1 = Group(name="Braca na praksi")
+    grupa1 = Group(name="Braca na praksi",group_budget=0.0)
     await grupa1.save()
+
 
     losmi = User(first_name='Losmi', last_name='Copara', monthly_income=20000, group=grupa1)
     predrag=User(first_name="Predragoslav",last_name="Trajkovic",monthly_income=30000,group=grupa1)
+
+
+
+
 
     async with in_transaction():
         await losmi.save()
         await predrag.save()
 
-    
+    trosak = Trosak(name="Struja", price=5000, user=predrag)
+
+    async with in_transaction():
+        await trosak.save()
+
     await grupa1.fetch_related('users')
     for user in grupa1.users:
         print(user)
