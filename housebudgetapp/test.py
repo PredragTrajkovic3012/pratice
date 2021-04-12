@@ -7,6 +7,8 @@ from models import User,Trosak,Group
 from unittest.mock import patch
 from tortoise.contrib.test import initializer, finalizer
 
+import api
+
 class test_BaseTestCase(unittest.TestCase):
     def setUp(self):
         with open('config.json', 'rt') as f:
@@ -57,7 +59,7 @@ async def  dodaj_usere_i_trosak_calc_budget(user_budget,trosak):
 
 
     await user1.save()
-    print(user1.monthly_income)
+#    print(user1.monthly_income)
     return user1.monthly_income
 
 async def  dodaj_usera_i_troskove_calc_budget(user_budget,trosk):
@@ -97,7 +99,7 @@ async def  users_in_group_Budget_merge_budget(prihod1,prihod2):
 
         grupa1.group_budget = user1.monthly_income+user2.monthly_income
         await  grupa1.save()
-    print(grupa1.group_budget);
+    #print(grupa1.group_budget);
     return grupa1.group_budget;
 
 
@@ -105,6 +107,48 @@ async def  users_in_group_Budget_merge_budget(prihod1,prihod2):
 
 class MyTestCase(test_BaseTestCase):
 
+    def test_add_user_and_a_few_spenes(self):
+        
+        res = self.loop.run_until_complete(api.add_user("Pera", "Peric", 5000))
+        self.assertTrue('id' in res)
+        id_user = res['id']
+
+        self.assertEqual({'balance': 5000.0, "first_name":"Pera","last_name":"Peric"}, self.loop.run_until_complete(api.get_user_by_id(id_user)))
+        
+        extra_spenses=[{'name': 'struja','price': 300},
+                 {'name': 'voda','price': 100},
+                 {'name': 'kurve','price': 4500},
+                 {'name': 'grejanje','price': 500}]
+
+        spenses=[{'name': 'struja','price': 300},
+                 {'name': 'voda','price': 100},
+                 {'name': 'grejanje','price': 500}]
+        
+        self.assertEqual({'status':'ok'},
+                         self.loop.run_until_complete(api.add_spenses_for_user(id_user, spenses)))
+
+        self.assertEqual({'status': 'ok', 'spenses': [{'name': 'struja', 'price': 300.0}, {'name': 'voda', 'price': 100.0}, {'name': 'grejanje', 'price': 500.0}]},
+                         self.loop.run_until_complete(api.all_spenses_for_user(id_user)))
+
+        self.assertEqual({'balance': 5000-300-100-500, "first_name":"Pera","last_name":"Peric"}, self.loop.run_until_complete(api.get_user_by_id(id_user)))
+
+        with self.assertRaises(NameError):
+            self.loop.run_until_complete(api.add_spenses_for_user(id_user, extra_spenses))
+        
+        self.flush_db_at_the_end = False
+    
+    def test_add_user_and_fetch_user_by_id(self):
+        res = self.loop.run_until_complete(api.add_user("Pera", "Peric", 70000))
+        self.assertTrue('id' in res)
+        id_user = res['id']
+        self.assertEqual({"first_name":"Pera","last_name":"Peric"}, self.loop.run_until_complete(api.get_user_by_id(id_user)))
+
+    def test_add_user_and_try_to_fetch_non_existing_user(self):
+        res = self.loop.run_until_complete(api.add_user("Pera", "Peric", 70000))
+        self.assertTrue('id' in res)
+
+        id_user = '00000000-0000-0000-0000-000000000001'
+        self.assertEqual({'status': 'error', 'message': 'not-found'}, self.loop.run_until_complete(api.get_user_by_id(id_user)))
 
     def test_add_usr_and_trosak(self):
         id_user, id_trosak = self.loop.run_until_complete(dodaj_usera_i_trosak())

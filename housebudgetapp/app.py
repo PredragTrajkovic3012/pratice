@@ -10,7 +10,7 @@ async def init():
     #  also specify the app name of "models"
     #  which contain models from "app.models"
     c = {
-        'user' : 'predrag',
+        'user' : 'igor',
         'password' : '123',
         'host' : '127.0.0.1',
         'dbname' : 'housebudgetapp'
@@ -43,8 +43,8 @@ async def init():
         await trosak.save()
 
     await grupa1.fetch_related('users')
-    for user in grupa1.users:
-        print(user)
+#    for user in grupa1.users:
+#        print(user)
 
     
 
