@@ -95,12 +95,11 @@ async def  users_in_group_Budget_merge_budget(prihod1,prihod2):
     await user2.save()
 
 
-    if user1.group == user2.group:
-
-        grupa1.group_budget = user1.monthly_income+user2.monthly_income
-        await  grupa1.save()
+#    if user1.group == user2.group:
+#        grupa1.group_budget = user1.monthly_income+user2.monthly_income
+#        await  grupa1.save()
     #print(grupa1.group_budget);
-    return grupa1.group_budget;
+    return await grupa1.group_budget;
 
 
 
@@ -135,13 +134,13 @@ class MyTestCase(test_BaseTestCase):
         with self.assertRaises(NameError):
             self.loop.run_until_complete(api.add_spenses_for_user(id_user, extra_spenses))
         
-        self.flush_db_at_the_end = False
+       # self.flush_db_at_the_end = False
     
     def test_add_user_and_fetch_user_by_id(self):
         res = self.loop.run_until_complete(api.add_user("Pera", "Peric", 70000))
         self.assertTrue('id' in res)
         id_user = res['id']
-        self.assertEqual({"first_name":"Pera","last_name":"Peric"}, self.loop.run_until_complete(api.get_user_by_id(id_user)))
+        self.assertEqual({"balance":70000.0,"first_name":"Pera","last_name":"Peric"}, self.loop.run_until_complete(api.get_user_by_id(id_user)))
 
     def test_add_user_and_try_to_fetch_non_existing_user(self):
         res = self.loop.run_until_complete(api.add_user("Pera", "Peric", 70000))
@@ -149,6 +148,33 @@ class MyTestCase(test_BaseTestCase):
 
         id_user = '00000000-0000-0000-0000-000000000001'
         self.assertEqual({'status': 'error', 'message': 'not-found'}, self.loop.run_until_complete(api.get_user_by_id(id_user)))
+    #pedjin test
+    def test_add_user_and_trosak_try_to_get_trosak(self):
+        res=self.loop.run_until_complete((api.add_user("Predrag","Trajkovic",8000)))
+        self.assertTrue('id' in res)
+        id_user = res['id']
+        self.assertEqual({'balance': 8000.0, "first_name": "Predrag", "last_name": "Trajkovic"},
+                         self.loop.run_until_complete(api.get_user_by_id(id_user)))
+
+        spenses = [{'name': 'Krompir', 'price': 300},
+                   {'name': 'Paprika', 'price': 100},
+                   {'name': 'Zena', 'price': 500}]
+
+        id_user_nepostojeci = '00000000-0000-0000-0000-000000000001'
+
+        self.assertEqual({'status': 'ok'},
+                         self.loop.run_until_complete(api.add_spenses_for_user(id_user, spenses)))
+        self.assertEqual({'message': 'not-found', 'status': 'error'},
+                         self.loop.run_until_complete(api.add_spenses_for_user(id_user_nepostojeci, spenses)))\
+
+        self.assertEqual({'balance': 5000.0, "first_name": "Pera", "last_name": "Peric"},
+                         self.loop.run_until_complete(api.get_user_by_id(id_user)))
+
+        #zavrsi test pitaj igora ....
+
+
+
+
 
     def test_add_usr_and_trosak(self):
         id_user, id_trosak = self.loop.run_until_complete(dodaj_usera_i_trosak())

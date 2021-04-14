@@ -16,7 +16,17 @@ class Group(Model):
     id = fields.UUIDField(pk=True)
     created = fields.DatetimeField(default=datetime.datetime.now)
     name = fields.CharField(max_length=60)
-    group_budget=fields.FloatField()
+
+    @property
+    async def group_budget(self):
+        await self.fetch_related('users')
+        b=0
+        for u in self.users:
+            b+=u.monthly_income
+        
+        return b
+        
+#    group_budget=fields.FloatField()
 
     users: fields.ReverseRelation["User"] = fields.ReverseRelation
 
