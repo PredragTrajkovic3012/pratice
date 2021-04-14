@@ -1,5 +1,7 @@
 import json
 
+import datetime
+
 from tortoise import Tortoise, fields
 from tortoise.models import Model
 
@@ -9,7 +11,10 @@ models = ["Group", "User", "Trosak"]
 class Group(Model):
     class Meta:
         table = 'grupe'
+
+
     id = fields.UUIDField(pk=True)
+    created = fields.DatetimeField(default=datetime.datetime.now)
     name = fields.CharField(max_length=60)
     group_budget=fields.FloatField()
 
@@ -22,6 +27,8 @@ class User(Model):
         table = 'users'
         
     id = fields.UUIDField(pk = True)
+
+    created = fields.DatetimeField(default=datetime.datetime.now)
 
     first_name = fields.CharField(max_length=50)
     last_name = fields.CharField(max_length=50, null=True)
@@ -59,7 +66,7 @@ class User(Model):
 
         await self.save()
 
-        print(self.monthly_income)
+#        print(self.monthly_income)
         return self.monthly_income
 
 
@@ -82,8 +89,10 @@ class Trosak(Model):
 
     class Meta:
         table = 'troskovi'
+        ordering = ('created',)
 
     id = fields.UUIDField(pk = True)
+    created = fields.DatetimeField(default=datetime.datetime.now)
     name = fields.CharField(max_length=60)
     price = fields.FloatField()
 
